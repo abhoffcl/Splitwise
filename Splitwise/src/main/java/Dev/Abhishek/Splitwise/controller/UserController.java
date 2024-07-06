@@ -24,7 +24,7 @@ public class UserController {
     ResponseEntity<UserResponseDto> signup(@RequestBody UserSignupRequestDto userSignupRequestDto){
         String name=userSignupRequestDto.getName();
         if (name == null || name.isEmpty() || name.isEmpty()) {
-            throw new InvalidUserCredentials("name cannot be blank");
+            throw new InvalidInputException("name cannot be blank");
         }
         validateEmail(userSignupRequestDto.getEmail(),false);
         validatePassword(userSignupRequestDto.getPassword(),false);
@@ -88,7 +88,8 @@ public class UserController {
                 "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$";
        final Pattern passwordPattern = Pattern.compile(PASSWORD_PATTERN);
         if (password == null || !passwordPattern.matcher(password).matches()) {
-            throw new InvalidUserCredentials("Invalid password format");
+            throw new InvalidUserCredentials("Invalid password format-password should have " +
+                    " atleast 8 characters including a small, capital, numeric and special character");
         }
     }
 }

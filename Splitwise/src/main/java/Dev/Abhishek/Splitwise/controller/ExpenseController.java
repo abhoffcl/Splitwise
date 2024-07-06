@@ -16,6 +16,12 @@ public class ExpenseController {
 
     @PostMapping("/")
     ResponseEntity<ExpenseResponseDto> createExpense(@RequestBody ExpenseRequestDto expenseRequestDto) {
+        String expenseDescription= expenseRequestDto.getDescription();
+        Double amount =expenseRequestDto.getAmount();
+            if(expenseDescription==null || expenseDescription.isBlank() || expenseDescription.isEmpty())
+                throw new InvalidInputException("Enter proper expense description");
+            if(amount==null || amount<0)
+                throw new InvalidInputException("Enter valid amount ");
 
         return ResponseEntity.ok(expenseService.createExpense(expenseRequestDto));
     }
@@ -24,6 +30,16 @@ public class ExpenseController {
     public ResponseEntity<ExpenseResponseDto> updateExpense(@PathVariable("id") int id, @RequestBody ExpenseRequestDto expenseRequestDto) {
         if (id < 1)
             throw new InvalidInputException("Enter valid Expense id ");
+        String expenseDescription= expenseRequestDto.getDescription();
+        Double amount =expenseRequestDto.getAmount();
+        if(expenseDescription!=null) {
+            if (expenseDescription.isBlank() || expenseDescription.isEmpty())
+                throw new InvalidInputException("Enter proper expense description");
+        }
+        if(amount!=null) {
+            if (amount < 0)
+                throw new InvalidInputException("Enter valid amount ");
+        }
         return ResponseEntity.ok(expenseService.updateExpense(id, expenseRequestDto));
     }
 

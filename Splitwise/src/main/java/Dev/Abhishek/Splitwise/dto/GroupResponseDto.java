@@ -12,6 +12,7 @@ import java.util.List;
 @Getter
 @Setter
 public class GroupResponseDto {
+    private String name;
     private List<Integer> memberIds;
     private double totalAmountSpent;
     private int id;

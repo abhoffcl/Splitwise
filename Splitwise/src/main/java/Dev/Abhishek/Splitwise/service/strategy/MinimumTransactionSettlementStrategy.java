@@ -2,9 +2,11 @@ package Dev.Abhishek.Splitwise.service.strategy;
 
 import Dev.Abhishek.Splitwise.dto.UserAmount;
 import Dev.Abhishek.Splitwise.entity.*;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
 
+@Component
 public class MinimumTransactionSettlementStrategy implements SettleUpStrategy{
     @Override
     public List<SettlementTransaction> settleUp(List<Expense> expenses) {

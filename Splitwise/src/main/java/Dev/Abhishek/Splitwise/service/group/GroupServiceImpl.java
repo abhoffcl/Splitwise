@@ -1,8 +1,10 @@
 package Dev.Abhishek.Splitwise.service.group;
 
+import Dev.Abhishek.Splitwise.dto.ExpenseResponseDto;
 import Dev.Abhishek.Splitwise.dto.GroupRequestDto;
 import Dev.Abhishek.Splitwise.dto.GroupResponseDto;
 import Dev.Abhishek.Splitwise.dto.SettlementTransactionResponseDto;
+import Dev.Abhishek.Splitwise.entity.Expense;
 import Dev.Abhishek.Splitwise.entity.Group;
 import Dev.Abhishek.Splitwise.entity.SettlementTransaction;
 import Dev.Abhishek.Splitwise.entity.User;
@@ -10,24 +12,42 @@ import Dev.Abhishek.Splitwise.exception.GroupNotFoundException;
 import Dev.Abhishek.Splitwise.exception.UserNotFoundException;
 import Dev.Abhishek.Splitwise.repository.GroupRepository;
 import Dev.Abhishek.Splitwise.repository.UserRepository;
+import Dev.Abhishek.Splitwise.service.expense.ExpenseService;
+import Dev.Abhishek.Splitwise.service.expense.ExpenseServiceImpl;
+import Dev.Abhishek.Splitwise.service.strategy.SettleUpStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static java.util.Arrays.stream;
-
+@Service
 public class GroupServiceImpl implements GroupService{
+    private SettleUpStrategy settleUpStrategy;
     private GroupRepository groupRepository;
     private UserRepository userRepository;
+    private ExpenseService expenseService;
 
     @Autowired
-    public GroupServiceImpl(GroupRepository groupRepository, UserRepository userRepository) {
+    public GroupServiceImpl(SettleUpStrategy settleUpStrategy, GroupRepository groupRepository, UserRepository userRepository, ExpenseService expenseService) {
+        this.settleUpStrategy = settleUpStrategy;
         this.groupRepository = groupRepository;
         this.userRepository = userRepository;
+        this.expenseService = expenseService;
     }
 
+    @Override
+    public List<SettlementTransactionResponseDto> settleUp(int id) {
+        Group savedGroup = groupRepository.findById(id).
+                orElseThrow(()->new GroupNotFoundException("Group not found for id "+id));
+        List<SettlementTransaction> settlementTransactions=settleUpStrategy.settleUp(savedGroup.getExpenses());
+        List<SettlementTransactionResponseDto>settlementTransactionResponseDtos=settlementTransactions.
+                stream().
+                map(SettlementTransactionResponseDto::entityToSettlementTransactionResponseDto).
+                collect(Collectors.toList());
+        return settlementTransactionResponseDtos;
+    }
     @Override
     public GroupResponseDto createGroup(GroupRequestDto groupRequestDto) {
         Group group = groupRequestDtoToEntity(groupRequestDto);
@@ -38,7 +58,6 @@ public class GroupServiceImpl implements GroupService{
         return  entityToGroupResponseDto(groupRepository.findById(id).
                 orElseThrow(()->new GroupNotFoundException("Group not found for id "+id)));
     }
-
     @Override
     public GroupResponseDto updateGroup(int id, GroupRequestDto groupRequestDto) {
         // not allowing to update the members,only name can be updated
@@ -57,11 +76,16 @@ public class GroupServiceImpl implements GroupService{
     public  GroupResponseDto entityToGroupResponseDto(Group group) {
         GroupResponseDto groupResponseDto = new GroupResponseDto();
         List<SettlementTransaction>settlementTransactions=group.getSettlementTransaction();
+        List<Expense>expenses=group.getExpenses();
         List<SettlementTransactionResponseDto> settlementTransactionDtos = settlementTransactions != null ?
                 settlementTransactions.
                          stream()
                         .map(SettlementTransactionResponseDto::entityToSettlementTransactionResponseDto)
                         .collect(Collectors.toList()) : new ArrayList<>();
+        List<ExpenseResponseDto>expenseDtos = expenses!=null?expenses.
+                stream().
+                map(expense->(((ExpenseServiceImpl)expenseService).entityToExpenseResponseDto(expense))).
+                collect(Collectors.toList()) : new ArrayList<>();
 
         List<User>members =group.getMembers();
         List<Integer>memberIds=members!=null?members.
@@ -72,6 +96,8 @@ public class GroupServiceImpl implements GroupService{
         groupResponseDto.setId(group.getId());
         groupResponseDto.setTotalAmountSpent(group.getTotalAmountSpent());
         groupResponseDto.setSettlementTransactions(settlementTransactionDtos);
+        groupResponseDto.setExpenses(expenseDtos);
+        groupResponseDto.setName(group.getName());
         return groupResponseDto;
     }
     public Group groupRequestDtoToEntity(GroupRequestDto groupRequestDto){
@@ -89,8 +115,7 @@ public class GroupServiceImpl implements GroupService{
         User createdBy = userRepository.findById(createdById).
                 orElseThrow(()-> new UserNotFoundException("User creating Group not found for userId "+createdById));
         group.setCreatedBy(createdBy);
+        group.setTotalAmountSpent(0);
         return group;
     }
-
-
 }

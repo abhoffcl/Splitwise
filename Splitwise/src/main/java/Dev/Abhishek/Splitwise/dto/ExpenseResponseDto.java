@@ -12,6 +12,7 @@ import java.util.List;
 @Getter
 @Setter
 public class ExpenseResponseDto {
+    private Integer id;
     private Integer groupId;
     private String description;
     private Double amount;

@@ -1,27 +1,24 @@
 package Dev.Abhishek.Splitwise.service.UserExpense;
 
-import Dev.Abhishek.Splitwise.dto.ExpenseResponseDto;
 import Dev.Abhishek.Splitwise.dto.UserExpenseRequestDto;
 import Dev.Abhishek.Splitwise.dto.UserExpenseResponseDto;
 import Dev.Abhishek.Splitwise.entity.Expense;
-import Dev.Abhishek.Splitwise.entity.Group;
 import Dev.Abhishek.Splitwise.entity.User;
 import Dev.Abhishek.Splitwise.entity.UserExpense;
 import Dev.Abhishek.Splitwise.exception.ExpenseNotFoundException;
-import Dev.Abhishek.Splitwise.exception.GroupNotFoundException;
 import Dev.Abhishek.Splitwise.exception.UserExpenseNotFoundException;
 import Dev.Abhishek.Splitwise.exception.UserNotFoundException;
 import Dev.Abhishek.Splitwise.repository.ExpenseRepository;
-import Dev.Abhishek.Splitwise.repository.GroupRepository;
 import Dev.Abhishek.Splitwise.repository.UserExpenseRepository;
 import Dev.Abhishek.Splitwise.repository.UserRepository;
-import Dev.Abhishek.Splitwise.service.expense.ExpenseService;
-import Dev.Abhishek.Splitwise.service.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
+
+@Service
 public class UserExpenseServiceImpl implements UserExpenseService{
     private UserExpenseRepository userExpenseRepository;
     private UserRepository userRepository;
@@ -40,7 +37,9 @@ public class UserExpenseServiceImpl implements UserExpenseService{
         Expense expense = expenseRepository.findById(userExpenseRequestDto.getExpenseId()).
                 orElseThrow(()->new ExpenseNotFoundException("Expense not found for id "+expenseId ));
         UserExpense userExpense=userExpenseRequestDtoToEntity(userExpenseRequestDto);
-        expense.getUserExpenses().add(userExpense);
+        List<UserExpense> userExpenses=expense.getUserExpenses()!=null?expense.getUserExpenses():new ArrayList<>();
+        userExpenses.add(userExpense);
+        expense.setUserExpenses(userExpenses);
         expenseRepository.save(expense);
         return entityToUserExpenseResponseDto(userExpenseRepository.save(userExpense));
     }

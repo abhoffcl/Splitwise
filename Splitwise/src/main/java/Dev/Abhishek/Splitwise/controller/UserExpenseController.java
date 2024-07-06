@@ -17,6 +17,9 @@ public class UserExpenseController {
 
     @PostMapping("/")
     ResponseEntity<UserExpenseResponseDto> createUserExpense(@RequestBody UserExpenseRequestDto userExpenseRequestDto) {
+        Double amount = userExpenseRequestDto.getAmount();
+        if(amount!=null || amount<0)
+            throw new InvalidInputException("Enter valid amount ");
 
         return ResponseEntity.ok(userExpenseService.createUserExpense(userExpenseRequestDto));
     }
@@ -25,6 +28,11 @@ public class UserExpenseController {
     public ResponseEntity<UserExpenseResponseDto> updateUserExpense(@PathVariable("id") int id, @RequestBody UserExpenseRequestDto userExpenseRequestDto) {
         if (id < 1)
             throw new InvalidInputException("Enter valid UserExpense id ");
+        Double amount = userExpenseRequestDto.getAmount();
+        if(amount!=null ){
+            if(amount<0)
+                throw new InvalidInputException("Enter valid amount ");
+        }
         return ResponseEntity.ok(userExpenseService.updateUserExpense(id, userExpenseRequestDto));
     }
 
@@ -34,7 +42,6 @@ public class UserExpenseController {
             throw new InvalidInputException("Enter valid UserExpense id ");
         return ResponseEntity.ok(userExpenseService.getUserExpense(id));
     }
-
     @DeleteMapping("/{id}")
     public ResponseEntity<Boolean> deleteUserExpense(@PathVariable("id") int id) {
         if (id < 1)
