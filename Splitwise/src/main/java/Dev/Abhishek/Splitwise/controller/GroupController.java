@@ -23,8 +23,10 @@ public class GroupController {
         this.groupService = groupService;
     }
 
-    @GetMapping("/settleUp{groupId}")
+    @GetMapping("/settleUp/{groupId}")
     public ResponseEntity<List<SettlementTransactionResponseDto>> settleUp(@PathVariable("groupId")int groupId){
+        if( groupId<1)
+            throw new InvalidInputException("Enter valid groupId");
         return ResponseEntity.ok(groupService.settleUp(groupId));
 
     }

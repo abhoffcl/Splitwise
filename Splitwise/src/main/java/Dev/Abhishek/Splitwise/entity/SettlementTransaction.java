@@ -13,7 +13,6 @@ import java.util.Currency;
 @Setter
 @Entity
 public class SettlementTransaction extends BaseModel{
-    private Currency currency;
     private double amount;
     @OneToOne
     @JoinColumn(name="paidTo")
@@ -23,9 +22,15 @@ public class SettlementTransaction extends BaseModel{
     private User paidBy;
     private Instant time;
 
-    public SettlementTransaction(double amount, User paidTo, User paidBy) {
+    public SettlementTransaction(double amount, User paidTo, User paidBy, Instant time) {
         this.amount = amount;
         this.paidTo = paidTo;
         this.paidBy = paidBy;
+        this.time = time;
     }
+
+    public SettlementTransaction() {
+    }
+
+
 }

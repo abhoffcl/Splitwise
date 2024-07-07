@@ -4,12 +4,10 @@ import Dev.Abhishek.Splitwise.dto.ExpenseResponseDto;
 import Dev.Abhishek.Splitwise.dto.GroupRequestDto;
 import Dev.Abhishek.Splitwise.dto.GroupResponseDto;
 import Dev.Abhishek.Splitwise.dto.SettlementTransactionResponseDto;
-import Dev.Abhishek.Splitwise.entity.Expense;
-import Dev.Abhishek.Splitwise.entity.Group;
-import Dev.Abhishek.Splitwise.entity.SettlementTransaction;
-import Dev.Abhishek.Splitwise.entity.User;
+import Dev.Abhishek.Splitwise.entity.*;
 import Dev.Abhishek.Splitwise.exception.GroupNotFoundException;
 import Dev.Abhishek.Splitwise.exception.UserNotFoundException;
+import Dev.Abhishek.Splitwise.repository.ExpenseRepository;
 import Dev.Abhishek.Splitwise.repository.GroupRepository;
 import Dev.Abhishek.Splitwise.repository.UserRepository;
 import Dev.Abhishek.Splitwise.service.expense.ExpenseService;
@@ -17,6 +15,7 @@ import Dev.Abhishek.Splitwise.service.expense.ExpenseServiceImpl;
 import Dev.Abhishek.Splitwise.service.strategy.SettleUpStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,24 +27,33 @@ public class GroupServiceImpl implements GroupService{
     private GroupRepository groupRepository;
     private UserRepository userRepository;
     private ExpenseService expenseService;
+    private ExpenseRepository expenseRepository;
 
     @Autowired
-    public GroupServiceImpl(SettleUpStrategy settleUpStrategy, GroupRepository groupRepository, UserRepository userRepository, ExpenseService expenseService) {
+    public GroupServiceImpl(SettleUpStrategy settleUpStrategy, GroupRepository groupRepository, UserRepository userRepository, ExpenseService expenseService, ExpenseRepository expenseRepository) {
         this.settleUpStrategy = settleUpStrategy;
         this.groupRepository = groupRepository;
         this.userRepository = userRepository;
         this.expenseService = expenseService;
+        this.expenseRepository = expenseRepository;
     }
 
     @Override
+    @Transactional
     public List<SettlementTransactionResponseDto> settleUp(int id) {
         Group savedGroup = groupRepository.findById(id).
                 orElseThrow(()->new GroupNotFoundException("Group not found for id "+id));
-        List<SettlementTransaction> settlementTransactions=settleUpStrategy.settleUp(savedGroup.getExpenses());
-        List<SettlementTransactionResponseDto>settlementTransactionResponseDtos=settlementTransactions.
-                stream().
-                map(SettlementTransactionResponseDto::entityToSettlementTransactionResponseDto).
-                collect(Collectors.toList());
+        List<SettlementTransaction> settlementTransactions=savedGroup.getSettlementTransaction();
+       // if(settlementTransactions==null || settlementTransactions.isEmpty()) {
+            List<Expense>unSettledExpenses=expenseRepository.FindExpenseByGroupIdAndIsSettledFalse(id);
+            settlementTransactions = settleUpStrategy.settleUp(unSettledExpenses);
+            savedGroup.setSettlementTransaction(settlementTransactions);
+            Group updatedGroup = groupRepository.save(savedGroup);
+
+        List<SettlementTransactionResponseDto> settlementTransactionResponseDtos = settlementTransactions.
+                    stream().
+                    map(SettlementTransactionResponseDto::entityToSettlementTransactionResponseDto).
+                    collect(Collectors.toList());
         return settlementTransactionResponseDtos;
     }
     @Override

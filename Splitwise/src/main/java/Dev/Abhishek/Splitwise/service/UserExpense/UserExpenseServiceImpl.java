@@ -38,10 +38,11 @@ public class UserExpenseServiceImpl implements UserExpenseService{
                 orElseThrow(()->new ExpenseNotFoundException("Expense not found for id "+expenseId ));
         UserExpense userExpense=userExpenseRequestDtoToEntity(userExpenseRequestDto);
         List<UserExpense> userExpenses=expense.getUserExpenses()!=null?expense.getUserExpenses():new ArrayList<>();
-        userExpenses.add(userExpense);
+        UserExpense savedUserExpense = userExpenseRepository.save(userExpense);
+        userExpenses.add(savedUserExpense);
         expense.setUserExpenses(userExpenses);
-        expenseRepository.save(expense);
-        return entityToUserExpenseResponseDto(userExpenseRepository.save(userExpense));
+        Expense updatedExpense =expenseRepository.save(expense);
+        return entityToUserExpenseResponseDto(savedUserExpense);
     }
     @Override
     public UserExpenseResponseDto getUserExpense(int id) {
@@ -75,6 +76,7 @@ public class UserExpenseServiceImpl implements UserExpenseService{
     }
     public UserExpenseResponseDto entityToUserExpenseResponseDto(UserExpense userExpense){
         UserExpenseResponseDto userExpenseResponseDto = new UserExpenseResponseDto();
+        userExpenseResponseDto.setId(userExpense.getId());
         userExpenseResponseDto.setUserId(userExpense.getUser().getId());
         userExpenseResponseDto.setAmount(userExpense.getAmount());
         userExpenseResponseDto.setType(userExpense.getType());

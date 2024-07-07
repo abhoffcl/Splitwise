@@ -11,13 +11,21 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/expense")
 public class ExpenseController {
-    @Autowired
+
     private ExpenseService expenseService;
+
+    @Autowired
+    public ExpenseController(ExpenseService expenseService) {
+        this.expenseService = expenseService;
+    }
 
     @PostMapping("/")
     ResponseEntity<ExpenseResponseDto> createExpense(@RequestBody ExpenseRequestDto expenseRequestDto) {
         String expenseDescription= expenseRequestDto.getDescription();
         Double amount =expenseRequestDto.getAmount();
+        Integer groupId =expenseRequestDto.getGroupId();
+            if(groupId==null || groupId<1)
+                throw new InvalidInputException("Enter valid groupId");
             if(expenseDescription==null || expenseDescription.isBlank() || expenseDescription.isEmpty())
                 throw new InvalidInputException("Enter proper expense description");
             if(amount==null || amount<0)

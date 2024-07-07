@@ -85,6 +85,7 @@ public class ExpenseServiceImpl implements ExpenseService {
       expense.setAddedBy(addedBy);
       expense.setExpenseTime(Instant.now());
       expense.setDescription(expenseRequestDto.getDescription());
+      expense.setSettled(false);
       return expense;
     }
     public ExpenseResponseDto entityToExpenseResponseDto(Expense expense){
@@ -94,6 +95,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         expenseResponseDto.setAmount(expense.getAmount());
         expenseResponseDto.setDescription(expense.getDescription());
         expenseResponseDto.setAddedBy(expense.getAddedBy().getId());
+        expenseResponseDto.setSettled(expense.isSettled());
 
        //find group by expenseId;
        Group group = groupRepository.findGroupByExpenseId(expense.getId());

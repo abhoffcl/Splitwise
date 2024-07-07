@@ -21,5 +21,7 @@ public class Expense extends BaseModel{
     @OneToMany
     @JoinColumn(name = "expenseId")
     private List<UserExpense>userExpenses;
+    private boolean isSettled;
+
 
 }

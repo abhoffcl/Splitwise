@@ -19,6 +19,7 @@ public class ExpenseResponseDto {
     private Integer addedBy;
     private Currency currency;
     private List<UserExpenseResponseDto>userExpenses;
+    private boolean isSettled;
 
 
 }

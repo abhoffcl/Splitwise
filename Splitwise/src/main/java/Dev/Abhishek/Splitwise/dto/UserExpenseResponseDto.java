@@ -13,8 +13,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class UserExpenseResponseDto {
+    private Integer id;
     private Integer userId;
-    private double amount;
+    private Double amount;
     private UserExpenseType type;
 
 

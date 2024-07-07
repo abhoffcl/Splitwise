@@ -12,15 +12,22 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/userExpense")
 public class UserExpenseController {
-    @Autowired
+
     private UserExpenseService userExpenseService;
+
+    @Autowired
+    public UserExpenseController(UserExpenseService userExpenseService) {
+        this.userExpenseService = userExpenseService;
+    }
 
     @PostMapping("/")
     ResponseEntity<UserExpenseResponseDto> createUserExpense(@RequestBody UserExpenseRequestDto userExpenseRequestDto) {
         Double amount = userExpenseRequestDto.getAmount();
-        if(amount!=null || amount<0)
+        if(amount==null || amount<0)
             throw new InvalidInputException("Enter valid amount ");
-
+        Integer expenseId=userExpenseRequestDto.getExpenseId();
+        if (expenseId == null || expenseId<1)
+            throw new IllegalArgumentException("Enter valid expense id");
         return ResponseEntity.ok(userExpenseService.createUserExpense(userExpenseRequestDto));
     }
 
